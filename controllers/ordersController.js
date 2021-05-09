@@ -12,12 +12,12 @@ exports.orderRequest = async (req, res, next) => {
   const transaction = await sequelize.transaction();
   const { id } = req.users;
 
-  const { totalPrice, slipImg } = req.body;
+  const { totalPrice, slipImg, dateTime } = req.body;
   const { OrderProductLists } = req.body;
-  console.log(OrderProductLists);
+  console.log(req.body);
 
   try {
-    const orders = Orders.create(
+    const orders = await Orders.create(
       {
         totalPrice,
         slipImgUrl: slipImg,
@@ -28,7 +28,7 @@ exports.orderRequest = async (req, res, next) => {
     );
     const insertData = await Promise.all(
       OrderProductLists.map((item) => {
-        item.orderId, item.quantity, item.productId;
+        (item.orderId = orders.id), item.quantity, item.productId;
         return item;
       })
     );

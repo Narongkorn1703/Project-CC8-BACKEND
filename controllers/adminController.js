@@ -6,8 +6,11 @@ const {
   ProductCategories,
 } = require("../models");
 const { Op } = require("sequelize");
+
 exports.addProduct = async (req, res, next) => {
-  const { name, categories, amount, price, productImg } = req.body;
+  const { name, categories, amount, price } = req.body;
+  console.log(req.imgUrl);
+  console.log(req.body);
   const { role } = req.users;
 
   if (role !== "ADMIN") {
@@ -17,7 +20,7 @@ exports.addProduct = async (req, res, next) => {
     name,
     amount,
     price,
-    productImg,
+    productImg: req.imgUrl,
     productCategoriesId: categories,
   });
   res.status(201).json({ message: "Added", product });
@@ -69,9 +72,62 @@ exports.getByKeyword = async (req, res, next) => {
         },
       ],
     },
+    include: {
+      model: ProductCategories,
+    },
   });
   res.status(200).json({ products });
 };
+exports.getAllKeywordPayment = async (req, res, next) => {
+  const { role } = req.users;
+  const { keyword } = req.query;
+  if (role !== "ADMIN")
+    return res.status(400).json({ message: "You are unauthorize" });
+  const orders = await Orders.findAll({
+    include: [
+      {
+        model: OrderProducts,
+
+        attributes: ["id", "quantity", "orderId", "productId"],
+      },
+      {
+        model: Users,
+        attributes: ["id", "email", "firstName", "lastName"],
+      },
+    ],
+    attributes: [
+      "id",
+      "totalPrice",
+      "paymentStatus",
+      "dateTime",
+      "slipImgUrl",
+    ],
+    where: {
+      [Op.or]: [
+        {
+          paymentStatus: {
+            [Op.like]: `%${keyword}%`,
+          },
+        },
+        {
+          id: {
+            [Op.like]: `%${keyword}%`,
+          },
+        },
+        {
+          totalPrice: {
+            [Op.like]: `%${keyword}%`,
+          },
+        },
+      ],
+    },
+
+    order: ["paymentStatus"],
+  });
+
+  res.status(201).json(orders);
+};
+
 exports.getById = async (req, res, next) => {
   const { id } = req.params;
   const { role } = req.users;
@@ -94,10 +150,13 @@ exports.updateProduct = async (req, res, next) => {
     productCategoriesId,
     amount,
     price,
-    productImg,
+
     productStatus,
   } = req.body;
   const { role } = req.users;
+  if (role !== "ADMIN") {
+    return res.status(401).json({ message: "You are unauthorize" });
+  }
   try {
     await Products.update(
       {
@@ -105,7 +164,7 @@ exports.updateProduct = async (req, res, next) => {
         productCategoriesId,
         amount,
         price,
-        productImg,
+        productImg: req.imgUrl,
         productStatus,
       },
       { where: { id } }
@@ -114,9 +173,6 @@ exports.updateProduct = async (req, res, next) => {
     res.status(200).json({ UDproduct });
   } catch (err) {
     console.log(err);
-  }
-  if (role !== "ADMIN") {
-    return res.status(401).json({ message: "You are unauthorize" });
   }
 };
 exports.deleteProduct = async (req, res, next) => {
@@ -127,7 +183,7 @@ exports.deleteProduct = async (req, res, next) => {
   if (role !== "ADMIN")
     return res.status(400).json({ message: "You are unauthorize" });
 
-  const product = await Products.update(
+  await Products.update(
     { productStatus: "DELETE" },
     { where: { id } }
   );
@@ -168,13 +224,23 @@ exports.getAllPayment = async (req, res, next) => {
 exports.confirmPayment = async (req, res, next) => {
   const { id } = req.params;
   const { role } = req.users;
-  const { paymentStatus } = req.body;
+  // const { paymentStatus } = req.body;
   if (role !== "ADMIN")
     return res.status(400).json({ message: "You are unauthorize" });
-  const orders = await Orders.update(
-    { paymentStatus },
+  await Orders.update(
+    { paymentStatus: "CONFIRMED" },
     { where: { id } }
   );
+  res.status(200).json({ message: "Payment Updated" });
+};
+
+exports.rejectPayment = async (req, res, next) => {
+  const { id } = req.params;
+  const { role } = req.users;
+  // const { paymentStatus } = req.body;
+  if (role !== "ADMIN")
+    return res.status(400).json({ message: "You are unauthorize" });
+  await Orders.update({ paymentStatus: "REJECT" }, { where: { id } });
   res.status(200).json({ message: "Payment Updated" });
 };
 exports.getAllCategories = async (req, res, next) => {

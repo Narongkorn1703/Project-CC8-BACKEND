@@ -2,10 +2,11 @@ const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/adminController");
 const usersController = require("../controllers/usersController");
-
+const multer = require("../middlewares/addFile");
 router.post(
   "/addproduct",
   usersController.protect,
+  multer.send,
   adminController.addProduct
 );
 router.get(
@@ -37,6 +38,7 @@ router.get(
 router.put(
   "/update/:id",
   usersController.protect,
+  multer.send,
   adminController.updateProduct
 );
 router.patch(
@@ -45,9 +47,19 @@ router.patch(
   adminController.confirmPayment
 );
 router.patch(
+  "/payment-reject/:id",
+  usersController.protect,
+  adminController.rejectPayment
+);
+router.patch(
   "/delete/:id",
   usersController.protect,
   adminController.deleteProduct
+);
+router.get(
+  "/search-payment",
+  usersController.protect,
+  adminController.getAllKeywordPayment
 );
 
 module.exports = router;

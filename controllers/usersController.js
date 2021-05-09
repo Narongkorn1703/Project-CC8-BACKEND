@@ -2,7 +2,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { Users } = require("../models");
 const { JWT_SECRET, BCRYPT_SALT, JWT_EXPIRES_IN } = process.env;
-const { sequelize } = require("../models");
 
 exports.protect = async (req, res, next) => {
   try {
