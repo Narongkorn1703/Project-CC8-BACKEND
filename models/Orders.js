@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       dateTime: DataTypes.DATE,
       slipImgUrl: DataTypes.STRING,
+      namePayment: DataTypes.STRING,
     },
     {
       underscored: true,

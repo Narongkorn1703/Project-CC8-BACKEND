@@ -1,5 +1,4 @@
 const { Orders, OrderProducts, sequelize } = require("../models");
-const { DateTime } = require("luxon");
 
 exports.orderRequest = async (req, res, next) => {
   //   const now = dt.toLocaleString(DateTime.DATE_SHORT);
@@ -12,7 +11,7 @@ exports.orderRequest = async (req, res, next) => {
   const transaction = await sequelize.transaction();
   const { id } = req.users;
 
-  const { totalPrice, slipImg, dateTime } = req.body;
+  const { totalPrice, slipImg } = req.body;
   const { OrderProductLists } = req.body;
   console.log(req.body);
 
@@ -47,18 +46,19 @@ exports.orderRequest = async (req, res, next) => {
 };
 exports.updateStatus = async (req, res, next) => {
   const { id, role } = req.users;
+  const { orderId } = req.params;
   console.log(role);
 
-  const { orderId, slipImgUrl, dateTime } = req.body;
+  const { namePayment, dateTime } = req.body;
   // const dt = `${dateTime} ${Times}`;
   if (role !== "USER" && role !== "ADMIN")
     return res.status(401).json({ message: "You are unauthorize" });
   try {
     let orders = await Orders.update(
-      { slipImgUrl, dateTime },
+      { slipImgUrl: req.imgUrl, dateTime, namePayment },
       { where: { id: orderId } }
     );
-    res.status(200).json({ message: "Order have sent" });
+    res.status(200).json({ message: "Order have sent", orders });
   } catch (err) {
     next(err);
   }

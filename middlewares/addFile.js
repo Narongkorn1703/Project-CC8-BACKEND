@@ -33,6 +33,7 @@ const upload = multer({
 module.exports.send = async (req, res, next) => {
   return await upload.single("image")(req, res, () => {
     console.log(req.file);
+    if (req.file === undefined) return next();
     if (!req.file) {
       return res.json({
         message:
@@ -44,7 +45,7 @@ module.exports.send = async (req, res, next) => {
       fs.unlinkSync(req.file.path); // ลบไฟล์ในโฟลเดอร์ local storage
 
       req.imgUrl = result.secure_url;
-      await next();
+      next();
     });
   });
 };

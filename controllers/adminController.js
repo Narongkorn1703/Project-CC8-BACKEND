@@ -119,6 +119,11 @@ exports.getAllKeywordPayment = async (req, res, next) => {
             [Op.like]: `%${keyword}%`,
           },
         },
+        {
+          namePayment: {
+            [Op.like]: `%${keyword}%`,
+          },
+        },
       ],
     },
 
@@ -202,6 +207,7 @@ exports.getAllPayment = async (req, res, next) => {
       "paymentStatus",
       "dateTime",
       "slipImgUrl",
+      "namePayment",
     ],
 
     include: [
